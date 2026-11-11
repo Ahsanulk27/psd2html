@@ -173,6 +173,22 @@ def generate_html(
 
 
 def _build_content(extraction: Extraction) -> list[dict]:
+    content = _build_image_content(extraction)
+    content.append(
+        {
+            "type": "text",
+            "text": (
+                f"Canvas: {extraction.width} x {extraction.height} px.\n\n"
+                f"Layer data:\n{extraction.layers_json()}\n\n"
+                "Write the HTML document for this design."
+            ),
+        }
+    )
+    return content
+
+
+def _build_image_content(extraction: Extraction) -> list[dict]:
+    """The rendered design as image blocks: overview first, then the slices."""
     content: list[dict] = []
     total = len(extraction.slices)
     if extraction.overview is not None:
@@ -188,17 +204,6 @@ def _build_content(extraction: Extraction) -> list[dict]:
             label += f" Shown at {extraction.slice_scale:.0%} of original size."
         content.append({"type": "text", "text": label})
         content.append(_image_block(piece.path))
-
-    content.append(
-        {
-            "type": "text",
-            "text": (
-                f"Canvas: {extraction.width} x {extraction.height} px.\n\n"
-                f"Layer data:\n{extraction.layers_json()}\n\n"
-                "Write the HTML document for this design."
-            ),
-        }
-    )
     return content
 
 

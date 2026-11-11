@@ -1,0 +1,187 @@
+{
+  "version": 1,
+  "canvas": {
+    "width": 2678,
+    "height": 3348
+  },
+  "pixelDensity": 1,
+  "background": "#ffffff",
+  "fonts": [
+    {
+      "key": "fhelvetican",
+      "postscript": "HelveticaNowDisplay-Black",
+      "family": "Helvetica Now Display",
+      "weight": 900,
+      "style": "normal",
+      "script": "latin"
+    },
+    {
+      "key": "fhelvetican2",
+      "postscript": "HelveticaNowText-Medium",
+      "family": "Helvetica Now Text",
+      "weight": 500,
+      "style": "normal",
+      "script": "latin"
+    }
+  ],
+  "layers": [
+    {
+      "kind": "photo",
+      "key": "photo",
+      "box": {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 2678.0,
+        "height": 3348.0
+      },
+      "radii": null,
+      "defaultFit": "cover",
+      "emptyFill": "#e5e7eb",
+      "placeholderInk": "dark",
+      "overlayKeys": [
+        "gradientfill3"
+      ]
+    },
+    {
+      "kind": "gradient",
+      "key": "gradientfill3",
+      "label": "Bottom gradient",
+      "box": {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 2678.0,
+        "height": 3348.0
+      },
+      "angle": 0.31,
+      "stops": [
+        {
+          "offset": 0.0,
+          "color": "#000000",
+          "alpha": 1.0
+        },
+        {
+          "offset": 0.0009,
+          "color": "#000000",
+          "alpha": 1.0
+        },
+        {
+          "offset": 0.671,
+          "color": "#000000",
+          "alpha": 0.0
+        },
+        {
+          "offset": 1.0,
+          "color": "#000000",
+          "alpha": 0.0
+        }
+      ],
+      "clip": null,
+      "editable": true,
+      "opacity": 1.0,
+      "blend": "normal"
+    },
+    {
+      "kind": "headline",
+      "key": "headline",
+      "box": {
+        "x": 104.0,
+        "y": 2494.0,
+        "width": 2439.0,
+        "height": 692.0
+      },
+      "font": "fhelvetican",
+      "size": 169.6,
+      "lineHeight": 141.0,
+      "letterSpacing": 0.0,
+      "align": "left",
+      "casing": "uppercase",
+      "vAlign": "top",
+      "baseColor": "#ffffff",
+      "highlightColor": "#ffc479",
+      "defaultText": "Bangladeshi restaurant \n'Korai Kitchen' named among NY Times’ 50 favourite restaurants \nin America",
+      "defaultWordColors": [
+        {
+          "word": 0,
+          "color": "#ffc479"
+        },
+        {
+          "word": 1,
+          "color": "#ffc479"
+        },
+        {
+          "word": 6,
+          "color": "#ffc479"
+        },
+        {
+          "word": 7,
+          "color": "#ffc479"
+        },
+        {
+          "word": 8,
+          "color": "#ffc479"
+        }
+      ],
+      "shadow": null,
+      "autoFit": {
+        "enabled": true,
+        "minSize": 84.8
+      }
+    },
+    {
+      "kind": "caption",
+      "key": "source",
+      "role": "source",
+      "text": null,
+      "box": {
+        "x": 1345.0,
+        "y": 124.0,
+        "width": 1211.0,
+        "height": 64.0
+      },
+      "font": "fhelvetican2",
+      "size": 67.0,
+      "color": "#ffffff",
+      "align": "right",
+      "letterSpacing": -0.06,
+      "vAlign": "top",
+      "dateFormat": null
+    },
+    {
+      "kind": "image",
+      "key": "cabl",
+      "asset": "cabl-7.png",
+      "box": {
+        "x": 132.0,
+        "y": 124.0,
+        "width": 405.0,
+        "height": 137.0
+      },
+      "opacity": 1.0,
+      "blend": "normal",
+      "clip": null
+    },
+    {
+      "kind": "image",
+      "key": "gram",
+      "asset": "gram-8.png",
+      "box": {
+        "x": 132.0,
+        "y": 276.0,
+        "width": 414.0,
+        "height": 137.0
+      },
+      "opacity": 1.0,
+      "blend": "normal",
+      "clip": null
+    }
+  ],
+  "warnings": [
+    "Photo slot placed by the model: The photo fills the whole card under the gradient."
+  ],
+  "missingFonts": [],
+  "source": {
+    "fileName": "cablgram45.psd",
+    "model": "fixture",
+    "generatedAt": "2026-11-11T09:43:56Z"
+  }
+}

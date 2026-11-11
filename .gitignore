@@ -6,3 +6,6 @@ data/
 *-html/
 *-extract/
 .ruff_cache/
+.pytest_cache/
+*-photocard/
+tests/psd/

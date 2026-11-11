@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "canvas": {
+    "width": 1215,
+    "height": 1519
+  },
+  "pixelDensity": 1,
+  "background": "#ffffff",
+  "fonts": [
+    {
+      "key": "fliadornoir",
+      "postscript": "LiAdorNoirrit-Bold",
+      "family": "Li Ador Noirrit",
+      "weight": 700,
+      "style": "normal",
+      "script": "bangla"
+    },
+    {
+      "key": "fekusheyban",
+      "postscript": "EkusheyBanglaKolom-Bold",
+      "family": "Ekushey Bangla Kolom",
+      "weight": 700,
+      "style": "normal",
+      "script": "bangla"
+    }
+  ],
+  "layers": [
+    {
+      "kind": "photo",
+      "key": "photo",
+      "box": {
+        "x": 40.0,
+        "y": 510.0,
+        "width": 1134.0,
+        "height": 750.0
+      },
+      "radii": [
+        68.0,
+        68.0,
+        68.0,
+        68.0
+      ],
+      "defaultFit": "cover",
+      "emptyFill": "#e5e7eb",
+      "placeholderInk": "dark",
+      "overlayKeys": [
+        "generativefill"
+      ]
+    },
+    {
+      "kind": "image",
+      "key": "generativefill",
+      "asset": "generative-fill-1.png",
+      "box": {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1215.0,
+        "height": 1519.0
+      },
+      "opacity": 1.0,
+      "blend": "normal",
+      "clip": null
+    },
+    {
+      "kind": "image",
+      "key": "layer2",
+      "asset": "layer-2-2.jpg",
+      "box": {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1215.0,
+        "height": 143.0
+      },
+      "opacity": 1.0,
+      "blend": "normal",
+      "clip": null
+    },
+    {
+      "kind": "headline",
+      "key": "headline",
+      "box": {
+        "x": 27.0,
+        "y": 234.0,
+        "width": 1175.0,
+        "height": 182.0
+      },
+      "font": "fliadornoir",
+      "size": 80.1,
+      "lineHeight": 95.4,
+      "letterSpacing": 0.0,
+      "align": "center",
+      "casing": "uppercase",
+      "vAlign": "top",
+      "baseColor": "#ffffff",
+      "highlightColor": "#ffe107",
+      "defaultText": "ইরানি বিমান চলাচলে মার্কিন নিষেধাজ্ঞার \nপ্রতিবাদে ইরাকের বসরায় বিক্ষোভ",
+      "defaultWordColors": [],
+      "shadow": null,
+      "autoFit": {
+        "enabled": true,
+        "minSize": 40.0
+      }
+    },
+    {
+      "kind": "caption",
+      "key": "date",
+      "role": "date",
+      "text": null,
+      "box": {
+        "x": 80.0,
+        "y": 52.0,
+        "width": 252.0,
+        "height": 36.0
+      },
+      "font": "fekusheyban",
+      "size": 46.3,
+      "color": "#000000",
+      "align": "center",
+      "letterSpacing": 0.0,
+      "vAlign": "top",
+      "dateFormat": {
+        "language": "bn",
+        "monthStyle": "long",
+        "order": "day-first"
+      }
+    },
+    {
+      "kind": "image",
+      "key": "logo",
+      "asset": "logo-5.png",
+      "box": {
+        "x": 922.0,
+        "y": 8.0,
+        "width": 139.0,
+        "height": 123.0
+      },
+      "opacity": 1.0,
+      "blend": "normal",
+      "clip": null
+    }
+  ],
+  "warnings": [],
+  "missingFonts": [],
+  "source": {
+    "fileName": "boishakhi.psd",
+    "model": "fixture",
+    "generatedAt": "2026-11-11T09:43:52Z"
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "canvas": {
+    "width": 3375,
+    "height": 4219
+  },
+  "pixelDensity": 1,
+  "background": "#ffffff",
+  "fonts": [
+    {
+      "key": "finterbold",
+      "postscript": "Inter-Bold",
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "script": "latin"
+    }
+  ],
+  "layers": [
+    {
+      "kind": "image",
+      "key": "canvasbordercolor",
+      "asset": "canvas-border-color-2.png",
+      "box": {
+        "x": 138.0,
+        "y": 449.0,
+        "width": 3086.0,
+        "height": 3599.0
+      },
+      "opacity": 1.0,
+      "blend": "normal",
+      "clip": null
+    },
+    {
+      "kind": "photo",
+      "key": "photo",
+      "box": {
+        "x": 181.0,
+        "y": 482.0,
+        "width": 2999.0,
+        "height": 3531.0
+      },
+      "radii": null,
+      "defaultFit": "cover",
+      "emptyFill": "#e5e7eb",
+      "placeholderInk": "dark",
+      "overlayKeys": []
+    },
+    {
+      "kind": "image",
+      "key": "gradient",
+      "asset": "gradient-4.png",
+      "box": {
+        "x": 181.0,
+        "y": 1087.0,
+        "width": 2999.0,
+        "height": 2926.0
+      },
+      "opacity": 1.0,
+      "blend": "normal",
+      "clip": {
+        "box": {
+          "x": 181.0,
+          "y": 482.0,
+          "width": 2999.0,
+          "height": 3531.0
+        },
+        "radii": null
+      }
+    },
+    {
+      "kind": "image",
+      "key": "logo",
+      "asset": "logo-5.png",
+      "box": {
+        "x": 159.0,
+        "y": 161.0,
+        "width": 679.0,
+        "height": 208.0
+      },
+      "opacity": 1.0,
+      "blend": "normal",
+      "clip": null
+    },
+    {
+      "kind": "headline",
+      "key": "headline",
+      "box": {
+        "x": 300.0,
+        "y": 3000.0,
+        "width": 2760.0,
+        "height": 900.0
+      },
+      "font": "finterbold",
+      "size": 202.0,
+      "lineHeight": 222.0,
+      "letterSpacing": 0.0,
+      "align": "left",
+      "casing": "preserve",
+      "vAlign": "bottom",
+      "baseColor": "#ffffff",
+      "highlightColor": "#ffe107",
+      "defaultText": "Your headline goes here",
+      "defaultWordColors": [],
+      "shadow": {
+        "color": "#000000",
+        "alpha": 0.45,
+        "offsetX": 0.0,
+        "offsetY": 2.0,
+        "blur": 12.0
+      },
+      "autoFit": {
+        "enabled": true,
+        "minSize": 101.0
+      }
+    }
+  ],
+  "warnings": [
+    "Headline placed by the model: No text in the design; placed over the lower part of the picture."
+  ],
+  "missingFonts": [],
+  "source": {
+    "fileName": "Revamped.psd",
+    "model": "fixture",
+    "generatedAt": "2026-11-11T09:44:18Z"
+  }
+}

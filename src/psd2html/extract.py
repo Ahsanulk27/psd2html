@@ -4,7 +4,8 @@ Produces, inside a work directory:
   design.png          full flattened render at original size (for previews)
   slices/slice-N.png  the render cut into model-friendly pieces, top to bottom
   overview.png        whole page scaled down (only when there is more than one slice)
-  layers.json         the layer tree: boxes, text + fonts, fill colors, asset links
+  layers.json         the layer tree: boxes, text + fonts, fill colors, gradient
+                      stops, clipping, shadows, asset links
 and inside an output directory:
   assets/*.png|jpg    image layers cropped out of the PSD, ready for <img> tags
 """
@@ -60,6 +61,7 @@ class Extraction:
     overview: Path | None
     slice_scale: float  # slice pixels per canvas pixel
     warnings: list[str] = field(default_factory=list)
+    color_mode: str = "rgb"
 
     def layers_json(self) -> str:
         return json.dumps(
@@ -81,6 +83,12 @@ def extract(psd_path: Path, work_dir: Path, output_dir: Path) -> Extraction:
 
     psd = PSDImage.open(psd_path)
     warnings: list[str] = []
+    color_mode = _enum_name(psd.color_mode) or "rgb"
+    if color_mode != "rgb":
+        warnings.append(
+            f"This file is in {color_mode.upper()} colour; the render and text colours "
+            "are converted and may be slightly off. Save a copy in RGB for exact colours."
+        )
 
     design = _render(psd, warnings)
     design_png = work_dir / "design.png"
@@ -105,6 +113,7 @@ def extract(psd_path: Path, work_dir: Path, output_dir: Path) -> Extraction:
         overview=overview,
         slice_scale=scale,
         warnings=warnings,
+        color_mode=color_mode,
     )
     (work_dir / "layers.json").write_text(extraction.layers_json(), encoding="utf-8")
     return extraction
@@ -193,11 +202,19 @@ class _Walker:
 
     def walk(self, group) -> list[dict]:
         # psd-tools lists children bottom-most first, which is also paint order.
+        # A clipped layer shows only inside the nearest unclipped layer below
+        # it; remember that layer so the clip survives into the data.
         nodes = []
+        base: dict | None = None
         for layer in group:
-            node = self._layer(layer)
+            clipped = bool(getattr(layer, "clipping", False))
+            node = self._layer(layer, base if clipped else None)
             if node is not None:
                 nodes.append(node)
+                if not clipped:
+                    base = node
+            elif not clipped:
+                base = None
         if group is not None and isinstance(group, PSDImage) and self._skipped_assets:
             self.warnings.append(
                 f"{self._skipped_assets} image layers were not exported "
@@ -205,7 +222,7 @@ class _Walker:
             )
         return nodes
 
-    def _layer(self, layer) -> dict | None:
+    def _layer(self, layer, base: dict | None = None) -> dict | None:
         if not layer.is_visible():
             return None
         # Only the part of a layer that lies on the canvas matters for HTML.
@@ -229,9 +246,14 @@ class _Walker:
         clipped = getattr(layer, "clipping", False)
         if clipped:
             node["clipped_to_layer_below"] = True
+            if base is not None:
+                node["clip_to"] = base["id"]
         effects = _effects(layer)
         if effects:
             node["effects"] = effects
+            shadow = _drop_shadow(layer)
+            if shadow:
+                node["shadow"] = shadow
 
         if kind == "group":
             children = self.walk(layer)
@@ -253,6 +275,12 @@ class _Walker:
                 node["fill"] = color
             return node
 
+        if kind == "gradientfill":
+            gradient = _gradient_fill(layer)
+            if gradient:
+                node["gradient"] = gradient
+                return node  # drawn with CSS/canvas gradients, not an image
+
         if kind == "shape":
             fill = _solid_fill(layer)
             if fill:
@@ -262,15 +290,27 @@ class _Walker:
                 node["shape"] = simple
                 return node  # plain rectangles and circles are built in CSS
 
-        # A clipped layer is already baked into the image of the layer it clips to.
-        if kind in IMAGE_KINDS and not clipped:
-            asset, fill, window = self._export(layer, node["id"], (left, top, right, bottom))
+        # A clipped layer is baked into the image of a raster it clips to. When
+        # the base is a shape or fill drawn with CSS instead, the clipped layer
+        # has nowhere to live, so it is exported on its own, cut to the base.
+        base_is_image = base is not None and "asset" in base
+        if kind in IMAGE_KINDS and not (clipped and base_is_image):
+            box = (left, top, right, bottom)
+            if clipped and base is not None and "box" in base:
+                bx, by, bw, bh = base["box"]
+                box = (max(left, bx), max(top, by), min(right, bx + bw), min(bottom, by + bh))
+                if box[2] <= box[0] or box[3] <= box[1]:
+                    return node
+                node["box"] = [box[0], box[1], box[2] - box[0], box[3] - box[1]]
+            asset, fill, window = self._export(layer, node["id"], box)
             if fill:
                 node["fill"] = fill
             if asset:
                 node["asset"] = asset
             if window:
-                node["transparent_window"] = window
+                node["transparent_window"] = window["box"]
+                if window["radius"]:
+                    node["transparent_window_radius"] = window["radius"]
         return node
 
     def _text(self, layer) -> dict:
@@ -308,6 +348,7 @@ class _Walker:
         text_type = _enum_name(getattr(layer, "text_type", None))
         if text_type:
             out["text_box"] = "area" if text_type == "paragraph" else "point"
+        out["script"] = _script_of(layer.text or "")
         return out
 
     def _export(self, layer, node_id: int, box: tuple[int, int, int, int]):
@@ -327,6 +368,13 @@ class _Walker:
             return None, None, None
         image = image.convert("RGBA")
         alpha_min, alpha_max = image.getchannel("A").getextrema()
+        if alpha_max == 0 and getattr(layer, "clipping", False):
+            # psd-tools renders a clipped layer on its own as empty; take its
+            # raw pixels instead, cut to the box, with the layer's opacity.
+            image = _raw_pixels(layer, box)
+            if image is None:
+                return None, None, None
+            alpha_min, alpha_max = image.getchannel("A").getextrema()
         if alpha_max == 0:
             return None, None, None  # nothing visible
 
@@ -353,6 +401,26 @@ class _Walker:
 # Helpers
 
 
+def _raw_pixels(layer, box: tuple[int, int, int, int]) -> Image.Image | None:
+    """A layer's own pixels inside `box` (canvas coordinates), RGBA."""
+    try:
+        raw = layer.topil()
+    except Exception:
+        return None
+    if raw is None:
+        return None
+    raw = raw.convert("RGBA")
+    left, top = layer.bbox[0], layer.bbox[1]
+    crop = (box[0] - left, box[1] - top, box[2] - left, box[3] - top)
+    canvas = Image.new("RGBA", (box[2] - box[0], box[3] - box[1]), (0, 0, 0, 0))
+    source = raw.crop((max(0, crop[0]), max(0, crop[1]), min(raw.width, crop[2]), min(raw.height, crop[3])))
+    canvas.paste(source, (max(0, -crop[0]), max(0, -crop[1])))
+    if layer.opacity < 255:
+        alpha = canvas.getchannel("A").point(lambda a: a * layer.opacity // 255)
+        canvas.putalpha(alpha)
+    return canvas
+
+
 def _single_color(image: Image.Image) -> str | None:
     """Hex color if every visible pixel has the same RGB (solid shapes, flat text)."""
     rgba = np.asarray(image)
@@ -366,11 +434,13 @@ def _single_color(image: Image.Image) -> str | None:
     return None
 
 
-def _transparent_window(image: Image.Image, box: tuple[int, int, int, int]) -> list[int] | None:
+def _transparent_window(image: Image.Image, box: tuple[int, int, int, int]) -> dict | None:
     """Canvas box of a see-through hole inside an image (e.g. a photo frame).
 
     Reported only when the fully transparent pixels make up a large area that
     doesn't touch the image's edges, so ordinary cut-out shapes are ignored.
+    Also estimates the hole's corner radius from how far along its top edge
+    the first clear pixel sits.
     """
     alpha = np.asarray(image.getchannel("A"))
     clear = alpha == 0
@@ -383,7 +453,12 @@ def _transparent_window(image: Image.Image, box: tuple[int, int, int, int]) -> l
         return None
     if clear[y1:y2, x1:x2].mean() < 0.8:
         return None
-    return [box[0] + x1, box[1] + y1, x2 - x1, y2 - y1]
+    top_row = clear[y1, x1:x2]
+    first_clear = int(np.argmax(top_row)) if top_row.any() else 0
+    # A rounded corner leaves the first `r` pixels of the top row covered;
+    # a square hole starts clear at x1. Keep it well under half the width.
+    radius = first_clear if 0 < first_clear < (x2 - x1) // 4 else 0
+    return {"box": [box[0] + x1, box[1] + y1, x2 - x1, y2 - y1], "radius": radius}
 
 
 def _enum_name(value) -> str | None:
@@ -498,6 +573,140 @@ def _corner_radii(descriptor) -> list[float] | None:
         return [round(float(getattr(descriptor.get(k), "value", descriptor.get(k))), 1) for k in keys]
     except Exception:
         return None
+
+
+def _gradient_fill(layer) -> dict | None:
+    """Stops and angle of a linear gradient fill layer, in CSS terms.
+
+    Photoshop measures the angle anticlockwise from "left to right" (0) with
+    90 running bottom to top; CSS measures clockwise from "to top" (0deg) with
+    90deg running left to right. Both put the first stop at the start of the
+    line, so css = 90 - photoshop. `Scl ` shrinks the line around its centre
+    and `Ofst` moves that centre, both as percentages of the box; they are
+    passed through for the renderer to fold into the gradient line.
+    """
+    try:
+        data = layer.tagged_blocks.get_data(Tag.GRADIENT_FILL_SETTING)
+        if data is None:
+            return None
+        kind = _enum_code(data.get(b"Type"))
+        if kind and kind != "lnr":
+            return None  # radial/angle/reflected gradients stay rasters
+        grad = data.get(b"Grad")
+        colors = []
+        for stop in grad.get(b"Clrs") or []:
+            color = stop.get(b"Clr ")
+            rgb = _hex(*(float(_value(color.get(k))) for k in (b"Rd  ", b"Grn ", b"Bl  ")))
+            colors.append((float(_value(stop.get(b"Lctn"))) / 4096, rgb))
+        alphas = [
+            (float(_value(stop.get(b"Lctn"))) / 4096, float(_value(stop.get(b"Opct"))) / 100)
+            for stop in (grad.get(b"Trns") or [])
+        ]
+        if not colors:
+            return None
+        if not alphas:
+            alphas = [(0.0, 1.0), (1.0, 1.0)]
+        angle = float(_value(data.get(b"Angl")) or 0.0)
+        scale = float(_value(data.get(b"Scl ")) or 100.0) / 100
+        offset = data.get(b"Ofst")
+        shift = (0.0, 0.0)
+        if offset is not None:
+            shift = (
+                float(_value(offset.get(b"Hrzn")) or 0.0) / 100,
+                float(_value(offset.get(b"Vrtc")) or 0.0) / 100,
+            )
+        reverse = bool(_value(data.get(b"Rvrs")) or False)
+        css_angle = (90 - angle) % 360
+        stops = _merge_gradient_stops(colors, alphas)
+        if reverse:
+            stops = [(1 - t, c, a) for t, c, a in reversed(stops)]
+        return {
+            "angle": round(css_angle, 2),
+            "stops": [{"offset": round(t, 4), "color": c, "alpha": round(a, 3)} for t, c, a in stops],
+            "scale": round(scale, 4),
+            "shift": [round(shift[0], 4), round(shift[1], 4)],
+        }
+    except Exception:
+        return None
+
+
+def _merge_gradient_stops(
+    colors: list[tuple[float, str]], alphas: list[tuple[float, float]]
+) -> list[tuple[float, str, float]]:
+    """One stop list carrying both colour and alpha at every location."""
+    colors.sort()
+    alphas.sort()
+    locations = sorted({t for t, _ in colors} | {t for t, _ in alphas})
+
+    def at(points, t, mix):
+        if t <= points[0][0]:
+            return points[0][1]
+        if t >= points[-1][0]:
+            return points[-1][1]
+        for (t0, v0), (t1, v1) in zip(points, points[1:]):
+            if t0 <= t <= t1:
+                f = 0 if t1 == t0 else (t - t0) / (t1 - t0)
+                return mix(v0, v1, f)
+        return points[-1][1]
+
+    def mix_color(a: str, b: str, f: float) -> str:
+        ra, ga, ba = (int(a[i : i + 2], 16) for i in (1, 3, 5))
+        rb, gb, bb = (int(b[i : i + 2], 16) for i in (1, 3, 5))
+        return _hex(ra + (rb - ra) * f, ga + (gb - ga) * f, ba + (bb - ba) * f)
+
+    return [
+        (max(0.0, min(1.0, t)), at(colors, t, mix_color), at(alphas, t, lambda a, b, f: a + (b - a) * f))
+        for t in locations
+    ]
+
+
+def _drop_shadow(layer) -> dict | None:
+    """Parameters of an enabled drop shadow, for text that carries one."""
+    try:
+        for effect in layer.effects:
+            if type(effect).__name__ != "DropShadow" or not getattr(effect, "enabled", True):
+                continue
+            color = effect.color
+            rgb = _hex(*(float(_value(color.get(k))) for k in (b"Rd  ", b"Grn ", b"Bl  ")))
+            return {
+                "color": rgb,
+                "alpha": round(float(_value(effect.opacity) or 75) / 100, 3),
+                "angle": float(_value(effect.angle) or 120),
+                "distance": float(_value(effect.distance) or 0),
+                "blur": float(_value(effect.size) or 0),
+            }
+    except Exception:
+        return None
+    return None
+
+
+def _value(descriptor_value):
+    """Unwrap psd-tools descriptor leaves (UnitFloat, Bool, Enumerated...)."""
+    if descriptor_value is None:
+        return None
+    return getattr(descriptor_value, "value", descriptor_value)
+
+
+def _enum_code(descriptor_value) -> str | None:
+    """The 4-letter code of a descriptor Enumerated, e.g. b'Lnr ' -> 'lnr'."""
+    code = getattr(descriptor_value, "enum", None)
+    if code is None:
+        return None
+    if isinstance(code, bytes):
+        code = code.decode("latin-1")
+    return str(code).strip().lower()
+
+
+_BANGLA_LETTERS = re.compile(r"[\u0980-\u09ff]")
+_LATIN_LETTERS = re.compile(r"[A-Za-z\u00c0-\u024f]")
+
+
+def _script_of(text: str) -> str:
+    bangla = bool(_BANGLA_LETTERS.search(text))
+    latin = bool(_LATIN_LETTERS.search(text))
+    if bangla and latin:
+        return "mixed"
+    return "bangla" if bangla else "latin"
 
 
 def _has_complex_effects(layer) -> bool:

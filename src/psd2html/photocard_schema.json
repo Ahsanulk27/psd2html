@@ -1,0 +1,1007 @@
+{
+  "$defs": {
+    "AutoFit": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "minSize": {
+          "default": 24,
+          "exclusiveMinimum": 0,
+          "title": "Minsize",
+          "type": "number"
+        }
+      },
+      "title": "AutoFit",
+      "type": "object"
+    },
+    "Box": {
+      "additionalProperties": false,
+      "description": "Document pixels, origin top-left.",
+      "properties": {
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "title": "Width",
+          "type": "number"
+        },
+        "height": {
+          "exclusiveMinimum": 0,
+          "title": "Height",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ],
+      "title": "Box",
+      "type": "object"
+    },
+    "Canvas": {
+      "additionalProperties": false,
+      "properties": {
+        "width": {
+          "maximum": 8000,
+          "minimum": 1,
+          "title": "Width",
+          "type": "integer"
+        },
+        "height": {
+          "maximum": 8000,
+          "minimum": 1,
+          "title": "Height",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "width",
+        "height"
+      ],
+      "title": "Canvas",
+      "type": "object"
+    },
+    "CaptionLayer": {
+      "additionalProperties": false,
+      "description": "Small text: the source line, the dateline, the site, or fixed copy.",
+      "properties": {
+        "kind": {
+          "const": "caption",
+          "title": "Kind",
+          "type": "string"
+        },
+        "key": {
+          "pattern": "^[a-z][a-z0-9]{0,31}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "source",
+            "date",
+            "site",
+            "static"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "maxLength": 300,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "static captions only",
+          "title": "Text"
+        },
+        "box": {
+          "$ref": "#/$defs/Box"
+        },
+        "font": {
+          "pattern": "^[a-z][a-z0-9]{0,31}$",
+          "title": "Font",
+          "type": "string"
+        },
+        "size": {
+          "exclusiveMinimum": 0,
+          "title": "Size",
+          "type": "number"
+        },
+        "color": {
+          "description": "#rrggbb, lower-case",
+          "pattern": "^#[0-9a-f]{6}$",
+          "title": "Color",
+          "type": "string"
+        },
+        "align": {
+          "default": "left",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "title": "Align",
+          "type": "string"
+        },
+        "letterSpacing": {
+          "default": 0,
+          "title": "Letterspacing",
+          "type": "number"
+        },
+        "vAlign": {
+          "default": "top",
+          "enum": [
+            "top",
+            "center",
+            "bottom"
+          ],
+          "title": "Valign",
+          "type": "string"
+        },
+        "dateFormat": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateFormat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "kind",
+        "key",
+        "role",
+        "box",
+        "font",
+        "size",
+        "color"
+      ],
+      "title": "CaptionLayer",
+      "type": "object"
+    },
+    "Clip": {
+      "additionalProperties": false,
+      "properties": {
+        "box": {
+          "$ref": "#/$defs/Box"
+        },
+        "radii": {
+          "anyOf": [
+            {
+              "items": {
+                "minimum": 0,
+                "type": "number"
+              },
+              "maxItems": 4,
+              "minItems": 4,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Radii"
+        }
+      },
+      "required": [
+        "box"
+      ],
+      "title": "Clip",
+      "type": "object"
+    },
+    "DateFormat": {
+      "additionalProperties": false,
+      "properties": {
+        "language": {
+          "default": "en",
+          "enum": [
+            "en",
+            "bn"
+          ],
+          "title": "Language",
+          "type": "string"
+        },
+        "monthStyle": {
+          "default": "short",
+          "enum": [
+            "short",
+            "long"
+          ],
+          "title": "Monthstyle",
+          "type": "string"
+        },
+        "order": {
+          "default": "day-first",
+          "enum": [
+            "day-first",
+            "month-first"
+          ],
+          "title": "Order",
+          "type": "string"
+        }
+      },
+      "title": "DateFormat",
+      "type": "object"
+    },
+    "EllipseShape": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "ellipse",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "EllipseShape",
+      "type": "object"
+    },
+    "FillLayer": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "fill",
+          "title": "Kind",
+          "type": "string"
+        },
+        "key": {
+          "pattern": "^[a-z][a-z0-9]{0,31}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "box": {
+          "$ref": "#/$defs/Box"
+        },
+        "color": {
+          "description": "#rrggbb, lower-case",
+          "pattern": "^#[0-9a-f]{6}$",
+          "title": "Color",
+          "type": "string"
+        },
+        "shape": {
+          "discriminator": {
+            "mapping": {
+              "ellipse": "#/$defs/EllipseShape",
+              "rect": "#/$defs/RectShape",
+              "rounded_rect": "#/$defs/RoundedRectShape"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/RectShape"
+            },
+            {
+              "$ref": "#/$defs/RoundedRectShape"
+            },
+            {
+              "$ref": "#/$defs/EllipseShape"
+            }
+          ],
+          "title": "Shape"
+        },
+        "opacity": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Opacity",
+          "type": "number"
+        },
+        "stroke": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Stroke"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "kind",
+        "key",
+        "box",
+        "color",
+        "shape"
+      ],
+      "title": "FillLayer",
+      "type": "object"
+    },
+    "GradientLayer": {
+      "additionalProperties": false,
+      "description": "A linear gradient over `box`, at a CSS angle (0 = up, 90 = right).",
+      "properties": {
+        "kind": {
+          "const": "gradient",
+          "title": "Kind",
+          "type": "string"
+        },
+        "key": {
+          "pattern": "^[a-z][a-z0-9]{0,31}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 40,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "box": {
+          "$ref": "#/$defs/Box"
+        },
+        "angle": {
+          "title": "Angle",
+          "type": "number"
+        },
+        "stops": {
+          "items": {
+            "$ref": "#/$defs/GradientStop"
+          },
+          "maxItems": 16,
+          "minItems": 2,
+          "title": "Stops",
+          "type": "array"
+        },
+        "clip": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Clip"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "editable": {
+          "default": true,
+          "title": "Editable",
+          "type": "boolean"
+        },
+        "opacity": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Opacity",
+          "type": "number"
+        },
+        "blend": {
+          "default": "normal",
+          "enum": [
+            "normal",
+            "multiply",
+            "screen",
+            "overlay"
+          ],
+          "title": "Blend",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "key",
+        "label",
+        "box",
+        "angle",
+        "stops"
+      ],
+      "title": "GradientLayer",
+      "type": "object"
+    },
+    "GradientStop": {
+      "additionalProperties": false,
+      "properties": {
+        "offset": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "number"
+        },
+        "color": {
+          "description": "#rrggbb, lower-case",
+          "pattern": "^#[0-9a-f]{6}$",
+          "title": "Color",
+          "type": "string"
+        },
+        "alpha": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Alpha",
+          "type": "number"
+        }
+      },
+      "required": [
+        "offset",
+        "color",
+        "alpha"
+      ],
+      "title": "GradientStop",
+      "type": "object"
+    },
+    "HeadlineLayer": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "headline",
+          "title": "Kind",
+          "type": "string"
+        },
+        "key": {
+          "pattern": "^[a-z][a-z0-9]{0,31}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "box": {
+          "$ref": "#/$defs/Box"
+        },
+        "font": {
+          "pattern": "^[a-z][a-z0-9]{0,31}$",
+          "title": "Font",
+          "type": "string"
+        },
+        "size": {
+          "exclusiveMinimum": 0,
+          "title": "Size",
+          "type": "number"
+        },
+        "lineHeight": {
+          "exclusiveMinimum": 0,
+          "title": "Lineheight",
+          "type": "number"
+        },
+        "letterSpacing": {
+          "default": 0,
+          "title": "Letterspacing",
+          "type": "number"
+        },
+        "align": {
+          "default": "left",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "title": "Align",
+          "type": "string"
+        },
+        "casing": {
+          "default": "preserve",
+          "enum": [
+            "uppercase",
+            "preserve"
+          ],
+          "title": "Casing",
+          "type": "string"
+        },
+        "vAlign": {
+          "default": "top",
+          "enum": [
+            "top",
+            "center",
+            "bottom"
+          ],
+          "title": "Valign",
+          "type": "string"
+        },
+        "baseColor": {
+          "description": "#rrggbb, lower-case",
+          "pattern": "^#[0-9a-f]{6}$",
+          "title": "Basecolor",
+          "type": "string"
+        },
+        "highlightColor": {
+          "description": "#rrggbb, lower-case",
+          "pattern": "^#[0-9a-f]{6}$",
+          "title": "Highlightcolor",
+          "type": "string"
+        },
+        "defaultText": {
+          "maxLength": 600,
+          "minLength": 1,
+          "title": "Defaulttext",
+          "type": "string"
+        },
+        "defaultWordColors": {
+          "items": {
+            "$ref": "#/$defs/WordColor"
+          },
+          "title": "Defaultwordcolors",
+          "type": "array"
+        },
+        "shadow": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Shadow"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "autoFit": {
+          "$ref": "#/$defs/AutoFit"
+        }
+      },
+      "required": [
+        "kind",
+        "key",
+        "box",
+        "font",
+        "size",
+        "lineHeight",
+        "baseColor",
+        "highlightColor",
+        "defaultText"
+      ],
+      "title": "HeadlineLayer",
+      "type": "object"
+    },
+    "ImageLayer": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "image",
+          "title": "Kind",
+          "type": "string"
+        },
+        "key": {
+          "pattern": "^[a-z][a-z0-9]{0,31}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "asset": {
+          "pattern": "^[\\w.\\-]+\\.(png|jpg|jpeg|webp)$",
+          "title": "Asset",
+          "type": "string"
+        },
+        "box": {
+          "$ref": "#/$defs/Box"
+        },
+        "opacity": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Opacity",
+          "type": "number"
+        },
+        "blend": {
+          "default": "normal",
+          "enum": [
+            "normal",
+            "multiply",
+            "screen",
+            "overlay"
+          ],
+          "title": "Blend",
+          "type": "string"
+        },
+        "clip": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Clip"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "kind",
+        "key",
+        "asset",
+        "box"
+      ],
+      "title": "ImageLayer",
+      "type": "object"
+    },
+    "PhotoLayer": {
+      "additionalProperties": false,
+      "description": "The one slot the author's photo goes in.",
+      "properties": {
+        "kind": {
+          "const": "photo",
+          "title": "Kind",
+          "type": "string"
+        },
+        "key": {
+          "pattern": "^[a-z][a-z0-9]{0,31}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "box": {
+          "$ref": "#/$defs/Box"
+        },
+        "radii": {
+          "anyOf": [
+            {
+              "items": {
+                "minimum": 0,
+                "type": "number"
+              },
+              "maxItems": 4,
+              "minItems": 4,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Radii"
+        },
+        "defaultFit": {
+          "default": "cover",
+          "enum": [
+            "cover",
+            "contain"
+          ],
+          "title": "Defaultfit",
+          "type": "string"
+        },
+        "emptyFill": {
+          "default": "#e5e7eb",
+          "description": "#rrggbb, lower-case",
+          "pattern": "^#[0-9a-f]{6}$",
+          "title": "Emptyfill",
+          "type": "string"
+        },
+        "placeholderInk": {
+          "default": "dark",
+          "enum": [
+            "light",
+            "dark"
+          ],
+          "title": "Placeholderink",
+          "type": "string"
+        },
+        "overlayKeys": {
+          "description": "layers above the photo that a lifted subject is drawn in front of (frames, rims, shades); text and everything above the first text layer stay on top of it",
+          "items": {
+            "pattern": "^[a-z][a-z0-9]{0,31}$",
+            "type": "string"
+          },
+          "title": "Overlaykeys",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "key",
+        "box"
+      ],
+      "title": "PhotoLayer",
+      "type": "object"
+    },
+    "RectShape": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "rect",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "RectShape",
+      "type": "object"
+    },
+    "RoundedRectShape": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "rounded_rect",
+          "title": "Type",
+          "type": "string"
+        },
+        "radii": {
+          "items": {
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "title": "Radii",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "radii"
+      ],
+      "title": "RoundedRectShape",
+      "type": "object"
+    },
+    "Shadow": {
+      "additionalProperties": false,
+      "properties": {
+        "color": {
+          "default": "#000000",
+          "description": "#rrggbb, lower-case",
+          "pattern": "^#[0-9a-f]{6}$",
+          "title": "Color",
+          "type": "string"
+        },
+        "alpha": {
+          "default": 0.5,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Alpha",
+          "type": "number"
+        },
+        "offsetX": {
+          "default": 0,
+          "title": "Offsetx",
+          "type": "number"
+        },
+        "offsetY": {
+          "default": 0,
+          "title": "Offsety",
+          "type": "number"
+        },
+        "blur": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Blur",
+          "type": "number"
+        }
+      },
+      "title": "Shadow",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "properties": {
+        "fileName": {
+          "maxLength": 255,
+          "title": "Filename",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 80,
+          "title": "Model",
+          "type": "string"
+        },
+        "generatedAt": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}",
+          "title": "Generatedat",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fileName",
+        "model",
+        "generatedAt"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "SpecFont": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "pattern": "^[a-z][a-z0-9]{0,31}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "postscript": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Postscript",
+          "type": "string"
+        },
+        "family": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Family",
+          "type": "string"
+        },
+        "weight": {
+          "default": 400,
+          "maximum": 900,
+          "minimum": 100,
+          "title": "Weight",
+          "type": "integer"
+        },
+        "style": {
+          "default": "normal",
+          "enum": [
+            "normal",
+            "italic"
+          ],
+          "title": "Style",
+          "type": "string"
+        },
+        "script": {
+          "default": "latin",
+          "enum": [
+            "latin",
+            "bangla",
+            "mixed"
+          ],
+          "title": "Script",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "postscript",
+        "family"
+      ],
+      "title": "SpecFont",
+      "type": "object"
+    },
+    "Stroke": {
+      "additionalProperties": false,
+      "properties": {
+        "color": {
+          "description": "#rrggbb, lower-case",
+          "pattern": "^#[0-9a-f]{6}$",
+          "title": "Color",
+          "type": "string"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "title": "Width",
+          "type": "number"
+        }
+      },
+      "required": [
+        "color",
+        "width"
+      ],
+      "title": "Stroke",
+      "type": "object"
+    },
+    "WordColor": {
+      "additionalProperties": false,
+      "properties": {
+        "word": {
+          "minimum": 0,
+          "title": "Word",
+          "type": "integer"
+        },
+        "color": {
+          "description": "#rrggbb, lower-case",
+          "pattern": "^#[0-9a-f]{6}$",
+          "title": "Color",
+          "type": "string"
+        }
+      },
+      "required": [
+        "word",
+        "color"
+      ],
+      "title": "WordColor",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "const": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "canvas": {
+      "$ref": "#/$defs/Canvas"
+    },
+    "pixelDensity": {
+      "default": 1,
+      "enum": [
+        1,
+        2
+      ],
+      "title": "Pixeldensity",
+      "type": "integer"
+    },
+    "background": {
+      "default": "#ffffff",
+      "description": "#rrggbb, lower-case",
+      "pattern": "^#[0-9a-f]{6}$",
+      "title": "Background",
+      "type": "string"
+    },
+    "fonts": {
+      "items": {
+        "$ref": "#/$defs/SpecFont"
+      },
+      "title": "Fonts",
+      "type": "array"
+    },
+    "layers": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "caption": "#/$defs/CaptionLayer",
+            "fill": "#/$defs/FillLayer",
+            "gradient": "#/$defs/GradientLayer",
+            "headline": "#/$defs/HeadlineLayer",
+            "image": "#/$defs/ImageLayer",
+            "photo": "#/$defs/PhotoLayer"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/ImageLayer"
+          },
+          {
+            "$ref": "#/$defs/FillLayer"
+          },
+          {
+            "$ref": "#/$defs/GradientLayer"
+          },
+          {
+            "$ref": "#/$defs/PhotoLayer"
+          },
+          {
+            "$ref": "#/$defs/HeadlineLayer"
+          },
+          {
+            "$ref": "#/$defs/CaptionLayer"
+          }
+        ]
+      },
+      "maxItems": 200,
+      "minItems": 2,
+      "title": "Layers",
+      "type": "array"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    },
+    "missingFonts": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Missingfonts",
+      "type": "array"
+    },
+    "source": {
+      "$ref": "#/$defs/Source"
+    }
+  },
+  "required": [
+    "version",
+    "canvas",
+    "layers",
+    "source"
+  ],
+  "title": "PhotocardSpec",
+  "type": "object"
+}

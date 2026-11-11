@@ -1,0 +1,12 @@
+.venv/
+data/
+*-html/
+*-extract/
+*-photocard/
+.env
+.git/
+__pycache__/
+.ruff_cache/
+.pytest_cache/
+tests/
+.claude/
