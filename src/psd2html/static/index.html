@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PSD to HTML</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --text: #16181d;
+    --muted: #616775;
+    --line: #dfe2e8;
+    --accent: #2f6fed;
+    --accent-text: #ffffff;
+    --danger: #c62f3b;
+    --warn-bg: #fff6e0;
+    --warn-text: #6b4d00;
+    --radius: 10px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121419;
+      --panel: #1b1e25;
+      --text: #e9ebf0;
+      --muted: #9aa1b0;
+      --line: #2c313b;
+      --accent: #5b8ff9;
+      --accent-text: #0b1020;
+      --danger: #ff6b76;
+      --warn-bg: #3a3014;
+      --warn-text: #f3dc9a;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 1400px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .lede { color: var(--muted); margin: 0 0 24px; }
+
+  .drop {
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 4px;
+    min-height: 200px;
+    padding: 24px;
+    text-align: center;
+    background: var(--panel);
+    border: 2px dashed var(--line);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .drop:hover, .drop.over { border-color: var(--accent); }
+  .drop strong { font-size: 17px; }
+  .drop span { color: var(--muted); }
+  .drop input { display: none; }
+
+  .status {
+    display: none;
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .status.show { display: block; }
+  .status .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .status .title { font-weight: 600; }
+  .status .meta { color: var(--muted); font-size: 14px; }
+  .status .error { color: var(--danger); margin-top: 8px; }
+  .spinner {
+    width: 16px; height: 16px; flex: none;
+    border: 2px solid var(--line); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .warnings { margin: 12px 0 0; padding: 10px 14px; border-radius: 8px; background: var(--warn-bg); color: var(--warn-text); font-size: 14px; }
+  .warnings ul { margin: 4px 0 0; padding-left: 18px; }
+
+  .toolbar { display: none; align-items: center; gap: 8px; flex-wrap: wrap; margin: 24px 0 12px; }
+  .toolbar.show { display: flex; }
+  .toolbar .spacer { flex: 1; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; background: var(--panel); color: var(--text); }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-text); }
+  button, .button {
+    font: inherit; font-size: 14px;
+    padding: 7px 14px;
+    border: 1px solid var(--line); border-radius: 8px;
+    background: var(--panel); color: var(--text);
+    text-decoration: none; cursor: pointer;
+  }
+  .button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  label.opacity { display: none; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+  label.opacity.show { display: inline-flex; }
+
+  .compare { display: none; gap: 16px; }
+  .compare.show { display: grid; grid-template-columns: 1fr 1fr; }
+  .compare.single { grid-template-columns: 1fr; }
+  .pane { min-width: 0; }
+  .pane h2 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin: 0 0 6px; }
+  .frame { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  .frame > * { position: absolute; top: 0; left: 0; transform-origin: 0 0; border: 0; display: block; }
+  .frame img.overlay { pointer-events: none; }
+  .frame > [hidden], .pane[hidden] { display: none; }
+  @media (max-width: 800px) { .compare.show { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>PSD to HTML</h1>
+  <p class="lede">Upload a Photoshop design. Its layers are read, and Claude rebuilds the page as HTML and CSS.</p>
+
+  <label class="drop" id="drop">
+    <input type="file" id="file" accept=".psd,.psb">
+    <strong>Drop a .psd file here</strong>
+    <span>or click to choose one</span>
+  </label>
+
+  <section class="status" id="status" aria-live="polite">
+    <div class="row">
+      <div class="spinner" id="spinner"></div>
+      <div class="title" id="statusTitle"></div>
+      <div class="meta" id="statusMeta"></div>
+    </div>
+    <div class="error" id="statusError" hidden></div>
+    <div class="warnings" id="warnings" hidden></div>
+  </section>
+
+  <div class="toolbar" id="toolbar">
+    <div class="seg" role="group" aria-label="View">
+      <button data-view="side" aria-pressed="true">Side by side</button>
+      <button data-view="overlay" aria-pressed="false">Overlay</button>
+      <button data-view="html" aria-pressed="false">HTML only</button>
+    </div>
+    <label class="opacity" id="opacityLabel">Design opacity
+      <input type="range" id="opacity" min="0" max="100" value="50">
+    </label>
+    <span class="spacer"></span>
+    <a class="button" id="openLink" target="_blank" rel="noopener">Open HTML</a>
+    <a class="button primary" id="downloadLink">Download .zip</a>
+  </div>
+
+  <section class="compare" id="compare">
+    <div class="pane" id="designPane">
+      <h2>Design</h2>
+      <div class="frame" id="designFrame"><img id="designImg" alt="Original design"></div>
+    </div>
+    <div class="pane">
+      <h2 id="htmlHeading">HTML</h2>
+      <div class="frame" id="htmlFrame">
+        <!-- No allow-scripts: the generated page can't run code (the server also
+             sends a CSP that blocks scripts). Same-origin is safe without it. -->
+        <iframe id="htmlIframe" sandbox="allow-same-origin" scrolling="no" title="Generated HTML"></iframe>
+        <img class="overlay" id="overlayImg" alt="" hidden>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const drop = $("drop"), fileInput = $("file");
+let canvas = null, view = "side", pollTimer = null;
+
+["dragenter", "dragover"].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (ev) => { if (ev.dataTransfer.files[0]) upload(ev.dataTransfer.files[0]); });
+fileInput.addEventListener("change", () => { if (fileInput.files[0]) upload(fileInput.files[0]); });
+
+async function upload(file) {
+  resetResult();
+  showStatus({ busy: true, title: `Uploading ${file.name}` });
+  const body = new FormData();
+  body.append("file", file);
+  try {
+    const res = await fetch("/api/convert", { method: "POST", body });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Upload failed");
+    location.hash = "job=" + data.job_id;
+    poll(data.job_id);
+  } catch (err) {
+    showStatus({ busy: false, title: "Upload failed", error: err.message });
+  }
+}
+
+async function poll(jobId) {
+  clearTimeout(pollTimer);
+  let job;
+  try {
+    const res = await fetch(`/api/jobs/${jobId}`);
+    if (!res.ok) throw new Error((await res.json()).detail || "Job not found");
+    job = await res.json();
+  } catch (err) {
+    showStatus({ busy: false, title: "Could not load job", error: err.message });
+    return;
+  }
+  const meta = [];
+  if (job.canvas) meta.push(`${job.canvas[0]} × ${job.canvas[1]} px`);
+  if (job.layers) meta.push(`${job.layers} layers`);
+  if (job.assets) meta.push(`${job.assets} images`);
+  if (job.status === "generating" && job.chars_written) meta.push(`${job.chars_written.toLocaleString()} characters written`);
+  if (job.status === "done" && job.output_tokens) meta.push(`${job.output_tokens.toLocaleString()} output tokens`);
+  const elapsed = Math.round(((job.finished_at || Date.now() / 1000) - job.created_at));
+  meta.push(`${elapsed}s`);
+
+  const busy = !["done", "error"].includes(job.status);
+  showStatus({
+    busy,
+    title: `${job.filename}: ${job.status === "done" ? "Done" : job.status === "error" ? "Failed" : job.message}`,
+    meta: meta.join(" · "),
+    error: job.error,
+    warnings: job.warnings,
+  });
+  if (job.status === "done") showResult(job);
+  else if (busy) pollTimer = setTimeout(() => poll(jobId), 1500);
+}
+
+function showStatus({ busy, title, meta = "", error = null, warnings = [] }) {
+  $("status").classList.add("show");
+  $("spinner").style.display = busy ? "" : "none";
+  $("statusTitle").textContent = title;
+  $("statusMeta").textContent = meta;
+  $("statusError").hidden = !error;
+  $("statusError").textContent = error || "";
+  const box = $("warnings");
+  box.hidden = !warnings || !warnings.length;
+  if (!box.hidden) {
+    box.innerHTML = "<strong>Check these</strong><ul></ul>";
+    warnings.forEach((w) => { const li = document.createElement("li"); li.textContent = w; box.querySelector("ul").append(li); });
+  }
+}
+
+function showResult(job) {
+  canvas = { w: job.canvas[0], h: job.canvas[1] };
+  const t = Date.now();
+  $("designImg").src = `/api/jobs/${job.id}/design.png?t=${t}`;
+  $("overlayImg").src = $("designImg").src;
+  $("htmlIframe").src = `/jobs/${job.id}/index.html?t=${t}`;
+  $("openLink").href = `/jobs/${job.id}/index.html`;
+  $("downloadLink").href = `/api/jobs/${job.id}/download`;
+  $("toolbar").classList.add("show");
+  $("compare").classList.add("show");
+  setView(view);
+}
+
+function resetResult() {
+  $("toolbar").classList.remove("show");
+  $("compare").classList.remove("show");
+  $("htmlIframe").removeAttribute("src");
+}
+
+function setView(next) {
+  view = next;
+  document.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.view === view));
+  $("designPane").hidden = view !== "side";
+  $("compare").classList.toggle("single", view !== "side");
+  $("overlayImg").hidden = view !== "overlay";
+  $("opacityLabel").classList.toggle("show", view === "overlay");
+  $("htmlHeading").textContent = view === "overlay" ? "HTML with design on top" : "HTML";
+  layout();
+}
+
+// Render both at the design's real width, then scale to fit the pane, so the
+// comparison matches what a desktop browser shows.
+function layout() {
+  if (!canvas) return;
+  for (const frame of [$("designFrame"), $("htmlFrame")]) {
+    if (!frame.offsetParent) continue;
+    const scale = frame.clientWidth / canvas.w;
+    frame.style.height = Math.round(canvas.h * scale) + "px";
+    for (const el of frame.children) {
+      el.style.width = canvas.w + "px";
+      el.style.height = canvas.h + "px";
+      el.style.transform = `scale(${scale})`;
+    }
+  }
+}
+
+document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => setView(b.dataset.view)));
+$("opacity").addEventListener("input", (e) => { $("overlayImg").style.opacity = e.target.value / 100; });
+$("overlayImg").style.opacity = 0.5;
+new ResizeObserver(layout).observe(document.body);
+
+function resumeFromHash() {
+  const match = location.hash.match(/job=([0-9a-f]{12})/);
+  if (match) poll(match[1]);
+}
+window.addEventListener("hashchange", () => { resetResult(); resumeFromHash(); });
+resumeFromHash();
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "psd2html",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "psd2html", "serve", "--port", "8000"],
+      "port": 8000
+    }
+  ]
+}

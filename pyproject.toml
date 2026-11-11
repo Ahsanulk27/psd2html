@@ -1,0 +1,24 @@
+[project]
+name = "psd2html"
+version = "0.1.0"
+description = "Turn Photoshop (PSD) designs into HTML and CSS with Claude"
+readme = "README.md"
+authors = [
+    { name = "Asif Mustafa" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=2.6.0",
+    "fastapi>=0.162.2",
+    "psd-tools[composite]>=1.26.0",
+    "python-dotenv>=1.2.4",
+    "python-multipart>=0.0.33",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+psd2html = "psd2html:main"
+
+[build-system]
+requires = ["uv_build>=0.13.6,<0.14.0"]
+build-backend = "uv_build"
